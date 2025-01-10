@@ -17,6 +17,12 @@ interface DirectoryInfo {
   subdirectories: DirectoryInfo[];
 }
 
+// Add configuration interface
+interface Config {
+  excludeDirs: string[];
+  watchMode: boolean;
+}
+
 const LANGUAGE_FILE_SIZE_LIMITS: Record<string, number> = {
   ts: 400,
   js: 400,
@@ -74,7 +80,7 @@ async function extractFunctions(content: string, fileType: string): Promise<stri
   return functions;
 }
 
-async function analyzeDirectory(dirPath: string): Promise<DirectoryInfo> {
+async function analyzeDirectory(dirPath: string, config: Config): Promise<DirectoryInfo> {
   const entries = await readdir(dirPath, { withFileTypes: true });
   const files: FileInfo[] = [];
   const subdirectories: DirectoryInfo[] = [];
@@ -83,7 +89,7 @@ async function analyzeDirectory(dirPath: string): Promise<DirectoryInfo> {
     const fullPath = join(dirPath, entry.name);
     const relativePath = relative(process.cwd(), fullPath);
 
-    // Skip common build outputs, dependencies, and system files
+    // Skip common build outputs, dependencies, system files, and user-specified exclusions
     if (entry.name.startsWith('.') || 
         entry.name === 'node_modules' ||
         entry.name === 'dist' ||
@@ -92,10 +98,11 @@ async function analyzeDirectory(dirPath: string): Promise<DirectoryInfo> {
         entry.name.endsWith('.lockb') ||
         entry.name === 'package-lock.json' ||
         entry.name === 'yarn.lock' ||
-        entry.name === '.DS_Store') continue;
+        entry.name === '.DS_Store' ||
+        config.excludeDirs.includes(entry.name)) continue;
 
     if (entry.isDirectory()) {
-      subdirectories.push(await analyzeDirectory(fullPath));
+      subdirectories.push(await analyzeDirectory(fullPath, config));
     } else {
       const fileStats = await stat(fullPath);
       const fileType = await detectFileType(entry.name);
@@ -162,18 +169,20 @@ function generateMarkdown(info: DirectoryInfo, level: number = 0): string {
   return markdown;
 }
 
-async function watchDirectory(dirPath: string) {
+async function watchDirectory(dirPath: string, config: Config) {
   console.log('👀 Watching for changes...');
   
   const watcher = watch(dirPath, { recursive: true }, async (eventType, filename) => {
     if (!filename) return;
     
-    // Ignore hidden files and node_modules
-    if (filename.startsWith('.') || filename.includes('node_modules')) return;
+    // Ignore hidden files, node_modules, and excluded directories
+    if (filename.startsWith('.') || 
+        filename.includes('node_modules') || 
+        config.excludeDirs.some(dir => filename.includes(dir))) return;
     
     console.log(`🔄 Change detected in ${filename}, updating documentation...`);
     try {
-      const info = await analyzeDirectory(process.cwd());
+      const info = await analyzeDirectory(process.cwd(), config);
       const markdown = generateMarkdown(info);
       await Bun.write('.cursor.directory_structure.md', markdown);
       console.log('✅ Directory structure documentation updated!');
@@ -193,15 +202,30 @@ async function watchDirectory(dirPath: string) {
 async function main() {
   try {
     const args = process.argv.slice(2);
-    const watchMode = args.includes('--watch') || args.includes('-w');
+    const config: Config = {
+      watchMode: args.includes('--watch') || args.includes('-w'),
+      excludeDirs: [],
+    };
 
-    const info = await analyzeDirectory(process.cwd());
+    // Parse exclude directories - support multiple --exclude flags
+    for (let i = 0; i < args.length; i++) {
+      if (args[i] === '--exclude' && args[i + 1]) {
+        config.excludeDirs.push(args[i + 1].trim());
+        i++; // Skip the next argument since we've consumed it
+      }
+    }
+
+    if (config.excludeDirs.length > 0) {
+      console.log('🚫 Excluding directories:', config.excludeDirs.join(', '));
+    }
+
+    const info = await analyzeDirectory(process.cwd(), config);
     const markdown = generateMarkdown(info);
     await Bun.write('.cursor.directory_structure.md', markdown);
     console.log('✅ Directory structure documentation generated successfully!');
 
-    if (watchMode) {
-      await watchDirectory(process.cwd());
+    if (config.watchMode) {
+      await watchDirectory(process.cwd(), config);
     }
   } catch (error) {
     console.error('❌ Error generating directory structure:', error);

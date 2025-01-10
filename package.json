@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "type": "module",
   "description": "A tool to generate directory structure documentation",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
   "bin": {
     "dotcursor": "bin/dotcursor"
   },
   "scripts": {
-    "start": "bun run src/index.ts"
+    "start": "bun run src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "@types/node": "^20.0.0",

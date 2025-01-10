@@ -16,6 +16,7 @@ This project helps you create the files that .cursorrules will refer to.
 - Function listings with detailed descriptions
 - File size alerts based on language standards
 - Continuous monitoring mode to automatically update documentation on file changes
+- Flexible directory exclusion with multiple `--exclude` flags support
 
 ## Installation
 
@@ -39,6 +40,14 @@ dotcursor
 dotcursor --watch
 # or
 dotcursor -w
+
+# Exclude specific directories
+dotcursor --exclude test
+# Multiple directories can be excluded using multiple flags
+dotcursor --exclude test --exclude docs --exclude examples
+
+# Combine with watch mode
+dotcursor --watch --exclude test --exclude docs
 ```
 
 This will generate a `.cursor.directory_structure.md` file in the current directory with:
