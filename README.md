@@ -9,6 +9,7 @@ This project helps you create the .cursorignore and other files that .cursorrule
 - File descriptions and types
 - Function listings with detailed descriptions
 - File size alerts based on language standards
+- Continuous monitoring mode to automatically update documentation on file changes
 
 ## Installation
 
@@ -25,7 +26,13 @@ bun link
 Navigate to any directory and run:
 
 ```bash
+# Generate documentation once
 dotcursor
+
+# Run in watch mode to automatically update on changes
+dotcursor --watch
+# or
+dotcursor -w
 ```
 
 This will generate a `.cursor.directory_structure.md` file in the current directory with:
@@ -34,3 +41,5 @@ This will generate a `.cursor.directory_structure.md` file in the current direct
 - File types and sizes
 - Function listings (for supported languages)
 - Size alerts for files exceeding language-specific recommendations
+
+When running in watch mode, the documentation will automatically update whenever files are added, modified, or deleted in the directory.

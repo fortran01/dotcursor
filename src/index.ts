@@ -2,6 +2,7 @@
 import { readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
 import { fileURLToPath } from 'url';
+import { watch } from 'fs';
 
 interface FileInfo {
   path: string;
@@ -152,12 +153,47 @@ function generateMarkdown(info: DirectoryInfo, level: number = 0): string {
   return markdown;
 }
 
+async function watchDirectory(dirPath: string) {
+  console.log('👀 Watching for changes...');
+  
+  const watcher = watch(dirPath, { recursive: true }, async (eventType, filename) => {
+    if (!filename) return;
+    
+    // Ignore hidden files and node_modules
+    if (filename.startsWith('.') || filename.includes('node_modules')) return;
+    
+    console.log(`🔄 Change detected in ${filename}, updating documentation...`);
+    try {
+      const info = await analyzeDirectory(process.cwd());
+      const markdown = generateMarkdown(info);
+      await Bun.write('.cursor.directory_structure.md', markdown);
+      console.log('✅ Directory structure documentation updated!');
+    } catch (error) {
+      console.error('❌ Error updating directory structure:', error);
+    }
+  });
+
+  // Handle process termination
+  process.on('SIGINT', () => {
+    console.log('\n👋 Stopping directory watch...');
+    watcher.close();
+    process.exit(0);
+  });
+}
+
 async function main() {
   try {
+    const args = process.argv.slice(2);
+    const watchMode = args.includes('--watch') || args.includes('-w');
+
     const info = await analyzeDirectory(process.cwd());
     const markdown = generateMarkdown(info);
     await Bun.write('.cursor.directory_structure.md', markdown);
     console.log('✅ Directory structure documentation generated successfully!');
+
+    if (watchMode) {
+      await watchDirectory(process.cwd());
+    }
   } catch (error) {
     console.error('❌ Error generating directory structure:', error);
     process.exit(1);
