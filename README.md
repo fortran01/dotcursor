@@ -1,6 +1,6 @@
 # dotcursor
 
-This project helps you create the .cursorignore and other files that .cursorrules will refer to.
+This project helps you create the files that .cursorrules will refer to.
 
 ## Features
 
