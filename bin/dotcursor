@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-bun run $(dirname "$0")/../src/index.ts "$@" 
+bun run "$(dirname "$0")/../dotcursor/src/index.ts" "$@"
