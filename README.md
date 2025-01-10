@@ -2,6 +2,12 @@
 
 This project helps you create the files that .cursorrules will refer to.
 
+## Tech Stack
+
+- TypeScript for type-safe development
+- Bun as the JavaScript runtime and package manager
+- Command-line interface (CLI) application architecture
+
 ## Features
 
 - Generates `.cursor.directory_structure.md` with detailed project information

@@ -83,7 +83,16 @@ async function analyzeDirectory(dirPath: string): Promise<DirectoryInfo> {
     const fullPath = join(dirPath, entry.name);
     const relativePath = relative(process.cwd(), fullPath);
 
-    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+    // Skip common build outputs, dependencies, and system files
+    if (entry.name.startsWith('.') || 
+        entry.name === 'node_modules' ||
+        entry.name === 'dist' ||
+        entry.name === 'build' ||
+        entry.name === 'coverage' ||
+        entry.name.endsWith('.lockb') ||
+        entry.name === 'package-lock.json' ||
+        entry.name === 'yarn.lock' ||
+        entry.name === '.DS_Store') continue;
 
     if (entry.isDirectory()) {
       subdirectories.push(await analyzeDirectory(fullPath));
