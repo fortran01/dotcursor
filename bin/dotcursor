@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-bun run "$(dirname "$0")/../dotcursor/src/index.ts" "$@"
+PACKAGE_DIR=$(npm prefix -g)/lib/node_modules/dotcursor
+bun "$PACKAGE_DIR/dist/index.js" "$@"

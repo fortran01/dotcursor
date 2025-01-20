@@ -1,6 +1,6 @@
 {
   "name": "dotcursor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "A tool to generate directory structure documentation",
   "main": "dist/index.js",
@@ -10,7 +10,9 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "build": "bun build ./src/index.ts --outdir ./dist --target node",
-    "prepublishOnly": "bun run build"
+    "prepare": "bun run build",
+    "prepublishOnly": "bun run build",
+    "test": "bun test"
   },
   "dependencies": {
     "@types/node": "^20.0.0",

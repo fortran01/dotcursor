@@ -4,14 +4,34 @@ import { join, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { watch } from 'fs';
 
-interface FileInfo {
+// Read package.json for version
+const packageJson = JSON.parse(await Bun.file(join(import.meta.dir, '../package.json')).text());
+const VERSION = packageJson.version;
+
+const HELP_TEXT = `dotcursor - Directory Structure Documentation Generator
+
+Usage: dotcursor [options]
+
+Options:
+  -h, --help     Show this help message
+  -v, --version  Show version information
+  -w, --watch    Watch for changes and update documentation
+  --exclude <dir> Exclude directory from documentation (can be used multiple times)
+
+Examples:
+  dotcursor                    Generate directory structure documentation
+  dotcursor --watch           Generate and watch for changes
+  dotcursor --exclude dist    Exclude 'dist' directory
+`;
+
+export interface FileInfo {
   path: string;
   size: number;
   type: string;
   functions?: string[];
 }
 
-interface DirectoryInfo {
+export interface DirectoryInfo {
   path: string;
   files: FileInfo[];
   subdirectories: DirectoryInfo[];
@@ -33,7 +53,8 @@ const LANGUAGE_FILE_SIZE_LIMITS: Record<string, number> = {
   'jsx': 400,
 };
 
-async function detectFileType(path: string): Promise<string> {
+// Make these functions exportable for testing
+export async function detectFileType(path: string): Promise<string> {
   const extension = path.split('.').pop()?.toLowerCase() || '';
   const commonExtensions: Record<string, string> = {
     ts: 'TypeScript',
@@ -55,7 +76,7 @@ async function detectFileType(path: string): Promise<string> {
   return commonExtensions[extension] || 'Unknown';
 }
 
-async function extractFunctions(content: string, fileType: string): Promise<string[]> {
+export async function extractFunctions(content: string, fileType: string): Promise<string[]> {
   const functions: string[] = [];
   let regex: RegExp;
 
@@ -80,7 +101,7 @@ async function extractFunctions(content: string, fileType: string): Promise<stri
   return functions;
 }
 
-async function analyzeDirectory(dirPath: string, config: Config): Promise<DirectoryInfo> {
+export async function analyzeDirectory(dirPath: string, config: Config): Promise<DirectoryInfo> {
   const entries = await readdir(dirPath, { withFileTypes: true });
   const files: FileInfo[] = [];
   const subdirectories: DirectoryInfo[] = [];
@@ -125,7 +146,7 @@ async function analyzeDirectory(dirPath: string, config: Config): Promise<Direct
   };
 }
 
-function generateMarkdown(info: DirectoryInfo, level: number = 0): string {
+export function generateMarkdown(info: DirectoryInfo, level: number = 0): string {
   const indent = '  '.repeat(level);
   let markdown = '';
 
@@ -202,6 +223,18 @@ async function watchDirectory(dirPath: string, config: Config) {
 async function main() {
   try {
     const args = process.argv.slice(2);
+    
+    // Handle help and version first
+    if (args.includes('-h') || args.includes('--help')) {
+      console.log(HELP_TEXT);
+      process.exit(0);
+    }
+
+    if (args.includes('-v') || args.includes('--version')) {
+      console.log(`dotcursor version ${VERSION}`);
+      process.exit(0);
+    }
+
     const config: Config = {
       watchMode: args.includes('--watch') || args.includes('-w'),
       excludeDirs: [],
@@ -228,7 +261,7 @@ async function main() {
       await watchDirectory(process.cwd(), config);
     }
   } catch (error) {
-    console.error('❌ Error generating directory structure:', error);
+    console.error('❌ Error:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }

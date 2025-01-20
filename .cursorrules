@@ -20,3 +20,18 @@ structure_file: ".cursor.directory_structure.md"
 track_readme_features: true
 readme_file: "README.md"
 feature_section: "## Features"
+
+# Test configuration
+test:
+  # Test file locations
+  locations:
+    - src/__tests__/**/*.test.ts
+    - src/__tests__/**/*.spec.ts
+  # Auto-update test files when source files change
+  auto_update: true
+  # Test naming convention
+  naming_pattern: "*.{test,spec}.ts"
+  # Test framework
+  framework: "bun:test"
+  # Test command
+  command: "bun test"
