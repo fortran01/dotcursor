@@ -1,0 +1,31 @@
+FROM debian:bookworm-slim
+
+# Install Node.js and npm
+RUN apt-get update && apt-get install -y \
+  curl \
+  unzip \
+  tree \
+  && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
+  && curl -fsSL https://bun.sh/install | bash \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+
+# Add bun to PATH
+ENV PATH="/root/.bun/bin:${PATH}"
+
+# Install dotcursor from npm
+RUN npm install -g dotcursor
+
+# Debug: Check installation
+RUN echo "Node version: $(node -v)" && \
+  echo "NPM version: $(npm -v)" && \
+  echo "Installed packages:" && \
+  npm list -g --depth=0
+
+# Set up test workspace
+WORKDIR /test
+COPY test.sh /test/test.sh
+RUN chmod +x /test/test.sh
+
+CMD ["./test.sh"] 

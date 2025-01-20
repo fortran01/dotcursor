@@ -63,6 +63,24 @@ npm install -g .           # Install from local directory
 dotcursor --help
 ```
 
+## Docker Testing
+
+```bash
+# Build and run tests in Docker
+docker build -t dotcursor-test -f Dockerfile.test . && docker run --rm dotcursor-test
+```
+
+This will:
+
+- Create a clean Debian environment
+- Install Node.js and required dependencies
+- Install dotcursor from npm
+- Run integration tests to verify:
+  - Global installation works
+  - Command is accessible
+  - File generation works correctly
+  - Gitignore patterns are respected
+
 ## Usage
 
 Navigate to any directory and run:
