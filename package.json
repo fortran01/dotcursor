@@ -1,6 +1,6 @@
 {
   "name": "dotcursor",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "type": "module",
   "description": "A tool to generate directory structure documentation",
   "main": "dist/index.js",
