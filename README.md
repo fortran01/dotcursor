@@ -28,6 +28,23 @@ bun install
 bun link
 ```
 
+## Testing Locally
+
+```bash
+# Build the project
+bun run build
+
+# Run tests
+bun test
+
+# Test global installation
+npm uninstall -g dotcursor  # Remove any existing installation
+npm install -g .           # Install from local directory
+
+# Test the command
+dotcursor --help
+```
+
 ## Usage
 
 Navigate to any directory and run:
