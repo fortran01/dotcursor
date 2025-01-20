@@ -5,12 +5,13 @@
   "description": "A tool to generate directory structure documentation",
   "main": "dist/index.js",
   "bin": {
-    "dotcursor": "bin/dotcursor"
+    "dotcursor": "./bin/dotcursor"
   },
   "scripts": {
     "start": "bun run src/index.ts",
-    "build": "bun build ./src/index.ts --outdir ./dist --target node",
+    "build": "bun build ./src/index.ts --outdir ./dist --target node --format esm",
     "prepare": "bun run build",
+    "preinstall": "bun run build",
     "prepublishOnly": "bun run build",
     "test": "bun test"
   },
@@ -36,6 +37,7 @@
   "license": "MIT",
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "src"
   ]
 }
