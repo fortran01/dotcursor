@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { watch } from 'fs';
 import { minimatch } from 'minimatch';
 
+console.log('🚀 Starting dotcursor...');
+
 // Read package.json for version
 const packageJson = JSON.parse(await Bun.file(join(import.meta.dir, '../package.json')).text());
 const VERSION = packageJson.version;
@@ -122,7 +124,13 @@ function isIgnored(path: string, patterns: string[]): boolean {
   // Normalize path to use forward slashes
   const normalizedPath = path.replace(/\\/g, '/');
   
-  return patterns.some(pattern => {
+  // Always allow .github directory and its contents
+  if (normalizedPath === '.github' || normalizedPath.startsWith('.github/')) {
+    console.log('🟢 isIgnored: Explicitly allowing:', normalizedPath);
+    return false;
+  }
+  
+  const isIgnored = patterns.some(pattern => {
     // Handle directory patterns that end with /
     if (pattern.endsWith('/')) {
       const dirPattern = pattern.slice(0, -1);
@@ -132,6 +140,11 @@ function isIgnored(path: string, patterns: string[]): boolean {
     // Handle file patterns
     return minimatch(normalizedPath, `**/${pattern}`, { dot: true });
   });
+  
+  if (normalizedPath.includes('.github')) {
+    console.log(`${isIgnored ? '🔴' : '🟢'} isIgnored: ${normalizedPath} matched patterns:`, isIgnored);
+  }
+  return isIgnored;
 }
 
 export async function analyzeDirectory(dirPath: string, config: Config): Promise<DirectoryInfo> {
@@ -147,11 +160,20 @@ export async function analyzeDirectory(dirPath: string, config: Config): Promise
     const fullPath = join(dirPath, entry.name);
     const relativePath = relative(process.cwd(), fullPath);
 
+    if (entry.name === '.github' || relativePath.includes('.github')) {
+      console.log('📁 Processing:', relativePath);
+    }
+
     // Skip if path matches gitignore patterns
-    if (isIgnored(relativePath, allPatterns)) continue;
+    if (isIgnored(relativePath, allPatterns)) {
+      if (entry.name === '.github' || relativePath.includes('.github')) {
+        console.log('❌ Skipped by isIgnored:', relativePath);
+      }
+      continue;
+    }
 
     // Skip common build outputs, dependencies, system files, and user-specified exclusions
-    if (entry.name.startsWith('.') || 
+    if ((entry.name.startsWith('.') && entry.name !== '.github') || 
         entry.name === 'node_modules' ||
         entry.name === 'dist' ||
         entry.name === 'build' ||
@@ -161,15 +183,27 @@ export async function analyzeDirectory(dirPath: string, config: Config): Promise
         entry.name === 'yarn.lock' ||
         entry.name === '.DS_Store' ||
         entry.name === '.gitignore' ||
-        config.excludeDirs.includes(entry.name)) continue;
+        config.excludeDirs.includes(entry.name)) {
+      if (entry.name === '.github' || relativePath.includes('.github')) {
+        console.log('❌ Skipped by exclusion rules:', relativePath);
+      }
+      continue;
+    }
 
     if (entry.isDirectory()) {
+      if (entry.name === '.github' || relativePath.includes('.github')) {
+        console.log('✅ Processing directory:', relativePath);
+      }
       subdirectories.push(await analyzeDirectory(fullPath, config));
     } else {
       const fileStats = await stat(fullPath);
       const fileType = await detectFileType(entry.name);
       const content = await Bun.file(fullPath).text();
       const functions = await extractFunctions(content, fileType);
+
+      if (relativePath.includes('.github')) {
+        console.log('✅ Added file:', relativePath);
+      }
 
       files.push({
         path: relativePath,
@@ -193,6 +227,7 @@ export function generateMarkdown(info: DirectoryInfo, level: number = 0): string
 
   // Directory name
   if (info.path) {
+    console.log('📝 Generating markdown for directory:', info.path);
     markdown += `${indent}${'#'.repeat(level + 2)} 📁 ${info.path}\n\n`;
   } else {
     markdown += `# 📁 Project Structure\n\n`;
@@ -200,6 +235,7 @@ export function generateMarkdown(info: DirectoryInfo, level: number = 0): string
 
   // Files
   if (info.files.length > 0) {
+    console.log('📝 Files in', info.path || 'root', ':', info.files.map(f => f.path));
     if (level === 0) {
       markdown += `## Files\n\n`;
     }
@@ -224,6 +260,9 @@ export function generateMarkdown(info: DirectoryInfo, level: number = 0): string
   }
 
   // Subdirectories
+  if (info.subdirectories.length > 0) {
+    console.log('📝 Subdirectories in', info.path || 'root', ':', info.subdirectories.map(d => d.path));
+  }
   for (const subdir of info.subdirectories) {
     markdown += generateMarkdown(subdir, level + 1);
   }

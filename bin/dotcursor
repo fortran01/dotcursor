@@ -1,3 +1,2 @@
-#!/usr/bin/env bash
-PACKAGE_DIR=$(npm prefix -g)/lib/node_modules/dotcursor
-bun "$PACKAGE_DIR/dist/index.js" "$@"
+#!/bin/bash
+NODE_NO_WARNINGS=1 NODE_OPTIONS='--no-warnings' bun run src/index.ts "$@"
