@@ -5,7 +5,7 @@
   "description": "A tool to generate directory structure documentation",
   "main": "dist/index.js",
   "bin": {
-    "dotcursor": "./bin/dotcursor"
+    "dotcursor": "./dist/index.js"
   },
   "scripts": {
     "start": "bun run src/index.ts",
