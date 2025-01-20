@@ -19,6 +19,23 @@ This project helps you create the files that .cursorrules will refer to.
 - Flexible directory exclusion with multiple `--exclude` flags support
 - Automatic respect for `.gitignore` patterns to exclude ignored files and directories
 
+## Release Strategy
+
+The project uses automated versioning and publishing through GitHub Actions. Here's how it works:
+
+- **Automatic Version Bumping**: Version is automatically incremented based on commit messages:
+  - `fix:` or regular commits → Patch version (0.0.x)
+  - `feat:` → Minor version (0.x.0)
+  - `BREAKING CHANGE:` in commit body → Major version (x.0.0)
+
+- **Release Process**: When code is pushed to main branch:
+  1. Tests are run
+  2. Version is bumped
+  3. GitHub release is created
+  4. Package is published to npm
+
+- **Manual Release**: Can be triggered via GitHub Actions workflow_dispatch
+
 ## Installation
 
 ```bash

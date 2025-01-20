@@ -1,15 +1,21 @@
 name: Publish Package
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build-and-publish:
+  version-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
@@ -24,6 +30,29 @@ jobs:
 
       - name: Build
         run: bun run build
+
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+
+      - name: Update package.json version
+        run: |
+          VERSION=${{ steps.tag_version.outputs.new_version }}
+          jq ".version = \"$VERSION\"" package.json > temp.json && mv temp.json package.json
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git commit -am "chore: bump version to $VERSION"
+          git push
+
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
 
       - name: Setup Node.js for publishing
         uses: actions/setup-node@v4
