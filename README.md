@@ -17,6 +17,7 @@ This project helps you create the files that .cursorrules will refer to.
 - File size alerts based on language standards
 - Continuous monitoring mode to automatically update documentation on file changes
 - Flexible directory exclusion with multiple `--exclude` flags support
+- Automatic respect for `.gitignore` patterns to exclude ignored files and directories
 
 ## Installation
 

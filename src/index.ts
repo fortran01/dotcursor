@@ -3,6 +3,7 @@ import { readdir, stat } from 'fs/promises';
 import { join, relative } from 'path';
 import { fileURLToPath } from 'url';
 import { watch } from 'fs';
+import { minimatch } from 'minimatch';
 
 // Read package.json for version
 const packageJson = JSON.parse(await Bun.file(join(import.meta.dir, '../package.json')).text());
@@ -41,6 +42,7 @@ export interface DirectoryInfo {
 interface Config {
   excludeDirs: string[];
   watchMode: boolean;
+  gitignorePatterns: string[];
 }
 
 const LANGUAGE_FILE_SIZE_LIMITS: Record<string, number> = {
@@ -101,14 +103,52 @@ export async function extractFunctions(content: string, fileType: string): Promi
   return functions;
 }
 
+// Add function to read .gitignore patterns
+async function readGitignorePatterns(dirPath: string = process.cwd()): Promise<string[]> {
+  try {
+    const gitignorePath = join(dirPath, '.gitignore');
+    const content = await Bun.file(gitignorePath).text();
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'));
+  } catch {
+    return []; // Return empty array if .gitignore doesn't exist
+  }
+}
+
+// Add function to check if path matches any gitignore pattern
+function isIgnored(path: string, patterns: string[]): boolean {
+  // Normalize path to use forward slashes
+  const normalizedPath = path.replace(/\\/g, '/');
+  
+  return patterns.some(pattern => {
+    // Handle directory patterns that end with /
+    if (pattern.endsWith('/')) {
+      const dirPattern = pattern.slice(0, -1);
+      return minimatch(normalizedPath, `**/${dirPattern}/**`, { dot: true }) ||
+             minimatch(normalizedPath, `**/${dirPattern}`, { dot: true });
+    }
+    // Handle file patterns
+    return minimatch(normalizedPath, `**/${pattern}`, { dot: true });
+  });
+}
+
 export async function analyzeDirectory(dirPath: string, config: Config): Promise<DirectoryInfo> {
   const entries = await readdir(dirPath, { withFileTypes: true });
   const files: FileInfo[] = [];
   const subdirectories: DirectoryInfo[] = [];
 
+  // Read gitignore patterns from the current directory
+  const localGitignorePatterns = await readGitignorePatterns(dirPath);
+  const allPatterns = [...config.gitignorePatterns, ...localGitignorePatterns];
+
   for (const entry of entries) {
     const fullPath = join(dirPath, entry.name);
     const relativePath = relative(process.cwd(), fullPath);
+
+    // Skip if path matches gitignore patterns
+    if (isIgnored(relativePath, allPatterns)) continue;
 
     // Skip common build outputs, dependencies, system files, and user-specified exclusions
     if (entry.name.startsWith('.') || 
@@ -120,6 +160,7 @@ export async function analyzeDirectory(dirPath: string, config: Config): Promise
         entry.name === 'package-lock.json' ||
         entry.name === 'yarn.lock' ||
         entry.name === '.DS_Store' ||
+        entry.name === '.gitignore' ||
         config.excludeDirs.includes(entry.name)) continue;
 
     if (entry.isDirectory()) {
@@ -235,9 +276,13 @@ async function main() {
       process.exit(0);
     }
 
+    // Read .gitignore patterns from current directory
+    const gitignorePatterns = await readGitignorePatterns(process.cwd());
+
     const config: Config = {
       watchMode: args.includes('--watch') || args.includes('-w'),
       excludeDirs: [],
+      gitignorePatterns,
     };
 
     // Parse exclude directories - support multiple --exclude flags

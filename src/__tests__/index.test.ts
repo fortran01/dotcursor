@@ -35,6 +35,16 @@ describe("dotcursor", () => {
       for (const [filename, content] of Object.entries(TEST_FILES)) {
         await writeFile(join(TEST_DIR, filename), content, 'utf-8');
       }
+      // Create files that should be ignored
+      await mkdir(join(TEST_DIR, 'temp'), { recursive: true });
+      await writeFile(join(TEST_DIR, 'test.log'), 'log content', 'utf-8');
+      await writeFile(join(TEST_DIR, 'ignored.ts'), 'ignored content', 'utf-8');
+      // Create .gitignore file
+      await writeFile(join(TEST_DIR, '.gitignore'), `
+# Test gitignore
+*.log
+temp/
+ignored.ts`, 'utf-8');
     } catch (error) {
       console.error('Error in test setup:', error);
       throw error;
@@ -77,11 +87,36 @@ describe("dotcursor", () => {
   // Test directory analysis
   test("analyzeDirectory", async () => {
     const { analyzeDirectory } = await import("../index");
-    const config = { excludeDirs: [], watchMode: false };
+    const config = { excludeDirs: [], watchMode: false, gitignorePatterns: [] };
     
     const info = await analyzeDirectory(TEST_DIR, config);
     
-    expect(info.files).toHaveLength(3);
+    // Debug log
+    console.log('Files found in first test:', info.files.map(f => f.path));
+    
+    // Should find all non-hidden files
+    expect(info.files).toHaveLength(3); // main.ts, script.py, style.css
+    expect(info.files.some((f: FileInfo) => f.path.includes("main.ts"))).toBe(true);
+    expect(info.files.some((f: FileInfo) => f.path.includes("script.py"))).toBe(true);
+    expect(info.files.some((f: FileInfo) => f.path.includes("style.css"))).toBe(true);
+  });
+
+  // Test directory analysis with gitignore patterns
+  test("analyzeDirectory respects gitignore patterns", async () => {
+    const { analyzeDirectory } = await import("../index");
+    // Use proper gitignore patterns
+    const gitignorePatterns = ['*.log', 'temp/', 'ignored.ts'];
+    const config = { excludeDirs: [], watchMode: false, gitignorePatterns };
+    
+    const info = await analyzeDirectory(TEST_DIR, config);
+    
+    // Should only find non-ignored files
+    expect(info.files).toHaveLength(3); // main.ts, script.py, style.css
+    expect(info.files.some((f: FileInfo) => f.path.includes("test.log"))).toBe(false);
+    expect(info.files.some((f: FileInfo) => f.path.includes("ignored.ts"))).toBe(false);
+    expect(info.subdirectories.some((d: DirectoryInfo) => d.path.includes("temp"))).toBe(false);
+    
+    // Verify the correct files are present
     expect(info.files.some((f: FileInfo) => f.path.includes("main.ts"))).toBe(true);
     expect(info.files.some((f: FileInfo) => f.path.includes("script.py"))).toBe(true);
     expect(info.files.some((f: FileInfo) => f.path.includes("style.css"))).toBe(true);
