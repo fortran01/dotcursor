@@ -27,11 +27,20 @@ test:
   locations:
     - src/__tests__/**/*.test.ts
     - src/__tests__/**/*.spec.ts
+    - test.sh # Docker integration test
   # Auto-update test files when source files change
   auto_update: true
   # Test naming convention
   naming_pattern: "*.{test,spec}.ts"
-  # Test framework
-  framework: "bun:test"
-  # Test command
-  command: "bun test"
+  # Test framework configurations
+  framework:
+    unit: "bun:test" # For TypeScript unit tests
+    integration: "docker" # For Docker integration tests
+  # Test commands
+  command:
+    unit: "bun test"
+    integration: "docker build -t dotcursor-test -f Dockerfile.test . && docker run --rm dotcursor-test"
+  # Integration test files
+  integration_tests:
+    - test.sh
+    - Dockerfile.test
