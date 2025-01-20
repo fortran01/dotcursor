@@ -16,5 +16,22 @@
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0",
     "bun-types": "latest"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fortran01/dotcursor"
+  },
+  "keywords": [
+    "cursor",
+    "directory-structure",
+    "documentation",
+    "file-system",
+    "cli"
+  ],
+  "author": "Prem Rara",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "bin"
+  ]
 } 
