@@ -1,0 +1,46 @@
+# Python Flask specific configurations
+# Add these to the common configuration from README.md
+
+# Flask-specific search paths
+search_path:
+  - app/**/*.py
+  - tests/**/*.py
+  - config.py
+
+# Python file associations
+file_associations:
+  "*.py": "python"
+  "*.html": "html"
+  "*.jinja": "jinja"
+
+# Python type hint configuration
+type_hints:
+  enforce: true
+  mypy_config: "mypy.ini"
+  strict_mode: true
+
+# Flask test configuration
+test:
+  locations:
+    - tests/**/*.py
+    - tests/integration/**/*.py
+  naming_pattern: "test_*.py"
+  framework:
+    unit: "pytest"
+    integration: "pytest"
+  command:
+    unit: "pytest tests/unit"
+    integration: "pytest tests/integration"
+  coverage:
+    tool: "pytest-cov"
+    min_coverage: 80
+    report_file: "coverage.xml"
+
+# Flask-specific configuration
+flask:
+  app_file: "app/__init__.py"
+  config_file: "config.py"
+  environment:
+    development: "config.DevelopmentConfig"
+    testing: "config.TestingConfig"
+    production: "config.ProductionConfig"

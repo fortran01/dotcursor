@@ -1,0 +1,23 @@
+# TypeScript Node.js specific configurations
+# Add these to the common configuration from README.md
+
+# TypeScript-specific search paths
+search_path:
+  - src/**/*.ts
+  - src/**/*.tsx
+
+# TypeScript file associations
+file_associations:
+  "*.ts": "typescript"
+  "*.tsx": "typescriptreact"
+
+# TypeScript test configuration
+test:
+  locations:
+    - src/__tests__/**/*.test.ts
+    - src/__tests__/**/*.spec.ts
+  naming_pattern: "*.{test,spec}.ts"
+  framework:
+    unit: "bun:test"    # Alternative options: jest, mocha, vitest
+  command:
+    unit: "bun test"
