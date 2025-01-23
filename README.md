@@ -18,6 +18,7 @@ This project helps you create the files that .cursorrules will refer to.
 - Continuous monitoring mode to automatically update documentation on file changes
 - Flexible directory exclusion with multiple `--exclude` flags support
 - Automatic respect for `.gitignore` patterns to exclude ignored files and directories
+- Collection of `.cursorrules` templates for different project types (see [templates/README.md](templates/README.md))
 
 ## Release Strategy
 
@@ -35,16 +36,6 @@ The project uses automated versioning and publishing through GitHub Actions. Her
   4. Package is published to npm
 
 - **Manual Release**: Can be triggered via GitHub Actions workflow_dispatch
-
-## Installation
-
-```bash
-# Install dependencies
-bun install
-
-# Make the command globally available
-bun link
-```
 
 ## Testing Locally
 
@@ -111,3 +102,20 @@ This will generate a `.cursor.directory_structure.md` file in the current direct
 - Size alerts for files exceeding language-specific recommendations
 
 When running in watch mode, the documentation will automatically update whenever files are added, modified, or deleted in the directory.
+
+## .cursorrules Templates
+
+To help you get started with `.cursorrules` configuration, we provide a collection of templates for different project types in the [templates](templates) directory. These templates include:
+
+- Common configurations that work well for most projects
+- Project-specific configurations for:
+  - TypeScript Node.js projects
+  - Python Flask applications
+  - More coming soon!
+
+Check out [templates/README.md](templates/README.md) for:
+
+- Detailed configuration options
+- Usage instructions
+- How to combine common and project-specific configurations
+- How to contribute new templates
