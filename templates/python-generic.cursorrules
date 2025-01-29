@@ -1,0 +1,59 @@
+# Python generic configurations
+# Add these to the common configuration from README.md
+
+# Python-specific search paths
+search_path:
+  - src/**/*.py
+  - tests/**/*.py
+
+# Python file associations
+file_associations:
+  "*.py": "python"
+  "*.pyi": "python"
+  "*.pyx": "cython"
+  "*.ipynb": "jupyter"
+
+# Python type hint configuration
+type_hints:
+  enforce: true
+  mypy_config: "mypy.ini"
+  strict_mode: true
+  stub_files: true
+
+# Python test configuration
+test:
+  locations:
+    - tests/**/*.py
+    - tests/unit/**/*.py
+    - tests/integration/**/*.py
+  naming_pattern: "test_*.py"
+  framework:
+    unit: "pytest"
+    integration: "pytest"
+  command:
+    unit: "pytest tests/unit"
+    integration: "pytest tests/integration"
+  coverage:
+    tool: "pytest-cov"
+    min_coverage: 80
+    report_file: "coverage.xml"
+
+# Python package configuration
+python:
+  version: ">=3.8"
+  virtual_env:
+    tool: "venv"  # Alternative: conda, poetry
+    requirements: "requirements.txt"
+  linting:
+    tools:
+      - "flake8"
+      - "black"
+      - "isort"
+    config_files:
+      - ".flake8"
+      - "pyproject.toml"
+  documentation:
+    tool: "sphinx"
+    source_dir: "docs"
+    build_dir: "docs/_build"
+    format: ["html", "rst"] 

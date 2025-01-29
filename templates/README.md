@@ -64,6 +64,7 @@ Templates in this directory only contain configurations specific to their projec
 
 1. `typescript-node.cursorrules` - TypeScript Node.js specific configurations
 2. `python-flask.cursorrules` - Python Flask specific configurations
+3. `python-generic.cursorrules` - Python generic configurations (framework-agnostic)
 
 ## Contributing
 
