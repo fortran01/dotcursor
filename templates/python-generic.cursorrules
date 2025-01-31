@@ -44,6 +44,12 @@ python:
   virtual_env:
     tool: "venv"  # Alternative: conda, poetry
     requirements: "requirements.txt"
+    dev_requirements: "requirements-dev.txt"  # For development dependencies
+    auto_activate: true  # Suggest IDE to auto-activate venv
+    setup_scripts:
+      - "python -m venv .venv"
+      - "source .venv/bin/activate"  # Unix
+      - ".venv\\Scripts\\activate"   # Windows
   linting:
     tools:
       - "flake8"

@@ -19,6 +19,27 @@ type_hints:
   mypy_config: "mypy.ini"
   strict_mode: true
 
+# Python package configuration
+python:
+  version: ">=3.8"
+  virtual_env:
+    tool: "venv"  # Alternative: conda, poetry
+    requirements: "requirements.txt"
+    dev_requirements: "requirements-dev.txt"  # For development dependencies
+    auto_activate: true  # Suggest IDE to auto-activate venv
+    setup_scripts:
+      - "python -m venv .venv"
+      - "source .venv/bin/activate"  # Unix
+      - ".venv\\Scripts\\activate"   # Windows
+  linting:
+    tools:
+      - "flake8"
+      - "black"
+      - "isort"
+    config_files:
+      - ".flake8"
+      - "pyproject.toml"
+
 # Flask test configuration
 test:
   locations:
